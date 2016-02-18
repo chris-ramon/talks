@@ -1,0 +1,404 @@
+Go 1.6 release party
+Golang Lima
+17 Feb 2016
+
+Chris Ramón
+@cramonn
+http://talks.godoc.org/github.com/davecheney/gosyd/go1.6.slide
+
+* Bienvenidos
+
+Hoy (17 Feb) es el "Release Party" por el lanzamiento de Go 1.6, en el cual participan Go Meetups de diferentes países.
+
+Existen alrededor de 44 grupos de usuarios de Go participando en este evento, [[https://github.com/golang/go/wiki/Go-1.6-release-party#whos-involved][aqui la lista completa]].
+
+Esta presentación esta basada en [[http://tip.golang.org/doc/go1.6][las notas oficiales de lanzamiento de Go 1.6]] publicadas en la página de Go.
+
+Esta presentación contine muchos links de referencia que pueden consultados online,  [[http://talks.godoc.org/github.com/davecheney/gosyd/go1.6.slide][talks.godoc.org/github.com/davecheney/gosyd/go1.6.slide]]
+
+* Artwork
+
+.image go1.6/Go_release_party_1.6_wide.png 500 _
+
+_Créditos_: [[https://groups.google.com/d/msg/go-meetup-organisers/5FFI9Azo2TE/_lyJU_xMEgAJ][Frédéric Menez / Golang Paris meetup]].
+
+* Go 1.6
+
+El lanzamiento de Go 1.6 llega luego de 6 meses desde el lanzamiento de la versión Go 1.5.
+
+La mayoría de los cambios son en la implementación del lenguaje, runtime y bibliotecas. No hay cambios en la especificación del lenguaje.
+
+Como siempre, manteniendo el compromiso [[http://tip.golang.org/doc/go1compat.html][de compatibilidad con la versión 1]].
+
+Se espera que casi todos los programas Go continúen compilando y funcionen como se espera.
+
+* Algunos números del proyecto Go
+
+Go fue anunciado como proyecto open-source el 10 de Noviembre de 2009.
+
+Los siguientes lanzamientos de nuevas versiones ocurren con una frecuencia de 6 meses; y lanzamientos entre versiones si es necesario arreglar ciertos bugs.
+
+Cronología de lanzamientos:
+
+- [[http://blog.golang.org/the-path-to-go-1][Go 1.0]] publicado el 28 de Marzo de 2012.
+- [[http://talks.golang.org/2013/go1.1.slide#1][Go 1.1]] publicado el 13 de Mayo de 2013.
+- Go 1.2 publicado el 1ero de Diciembre de 2013.
+- Go 1.3 publicado el 18 de Junio de 2014.
+- Go 1.4 publicado el 10 de Diciembre de 2014.
+- [[https://talks.golang.org/2015/state-of-go.slide#8][Go 1.5]] publicado el 19 de Agosto de 2015.
+- Se espera que Go 1.6 sea publicado en Febrero de 2016.
+
+* Plataformas compatibles
+
+Go 1.6 soporta los siguientes sistemas operativos.
+
+- Windows, OSX (darwin), Android, iOS, NaCl, DragonflyBSD, FreeBSD, Linux, NetBSD, OpenBSD, Plan 9, Solaris/Illumos
+
+Go 1.6 soporta las siguientes arquitecturas de CPU:
+
+- Intel (386 and amd64), arm (ARMv5, v6, v7), arm64, 64 bit PowerPC (big and little endian), 64 bit MIPS (big and little endian)
+
+En el futuro:
+
+- s390x (IBM Z series) planeado en Go 1.7
+- RISC-V en un largo plazo
+
+* Cross compilation
+
+En Go 1.6 el cross-compile tan simple como*:
+
+    # cross compile para Windows
+    env GOOS=windows go build $NOMBREDELPAQUETE
+
+Esto funciona con el Go binario que lo pueden encontrar en [[https://golang.org/dl/][golang.org]].
+
+
+Más sobre cross-compile:
+
+- [[http://dave.cheney.net/2015/08/22/cross-compilation-with-go-1-5][Cross compilation con Go 1.5]]
+- [[https://medium.com/@rakyll/go-1-5-cross-compilation-488092ba44ec#.7wrgy0a5s][Go 1.5: Cross compilation]]
+
+_*_A_menos_que_usen_cgo_
+
+* Mejoras al Garbage collector
+
+Go 1.5 incluyó un "garbage collector" de baja latencia.
+
+El nuevo "collector" intercambia throughput por reducir la latencia.
+
+Reducir asignaciones de memoria mejoran el tiempo que el gc "stops the world".
+
+Para Go 1.6, mucho del trabajo realizado fue enfocado en optimizar el gc, permitiendo administrar grandes "heaps" dentro de una latencia de 10ms como objetivo.
+
+* Go 1.5
+
+En el [[https://www.youtube.com/watch?v=aiv1JOfMjm0][GopherCon 2015 Rick Hudson hizo una presentación]] sobre el Go 1.5 "low latency collector"
+
+.image go1.6/go15.png 400 _
+
+* Go 1.6
+
+En el [[http://www.infoq.com/presentations/go-gc-performance][QCon SF en Noviembre Rick Hudson]] hizo una presentación donde mostro una comparación entre el "collector" de Go 1.5 y Go 1.6.
+
+.image go1.6/go16.png 400 _
+
+_Si,_el_eje_de_las_X_representan_gigabytes_
+
+* HTTP/2
+
+Go 1.6 incluye soporte transparente para el nuevo protocolo HTTP/2, incluído en la biblioteca `net/http`.
+
+Go clientes y servidores automáticamente usarán HTTP/2 cuando sea conveniente y cuando usen HTTPS.
+
+Los programas que deseen deshabilitar el soporte automático para HTTP/2 podrán hacerlo usando `Transport.TLSNextProto` (para clientes) o `Server.TLSNextProto` (para servidores) asignándoles un non-nil map vacío.
+
+Más sobre HTTP/2
+
+- [[https://http2.golang.org/][HTTP/2 sitio demo]] (referencia oficial)
+- [[https://www.youtube.com/watch?v=gukAZO1fqZQ][Aqui un video de Brad Fitzpatrick donde hace un resumen sobre el soporte de HTTP/2 en Go 1.6]] en un encuentro de Go en London 2015.
+
+* Compartiendo "pointers" entre Go and C
+
+El mayor cambio a cgo en Go 1.6, es la actualización de las reglas para compartir Go "pointers" con código C, que aseguran que ese código C puede coexistir con el gc de Go.
+
+Go y C pueden compartir memoria asignada por Go cuando:
+
+- el "pointer" a esa memoria es pasado a C como parte un cgo call,
+- y siempre que la memoria en si no contiene "pointers" a memoria asignada a Go,
+- y siempre que el código C no retiene un "pointer" luego de que el "call" retorna.
+
+Las reglas son chequeadas por el "runtime" durante la ejecución del programa: si el "runtime" detecta un no cumplimiento, imprime el diagnóstico y para el programa.
+
+El chequeo puede ser dehabilitado configurando la variable de entorno `GODEBUG=cgocheck=0`, tener en cuenta que deshabilitando esta funcionalidad podrán ocurrir misteriosas fallas.
+
+Se recomienda arreglar el código antes que deshabilitar el chequeo reciente mencionado.
+
+
+* Compartiendo "pointers" entre Go y C (cont.)
+
+.play go1.6/cgo.go
+
+* Compiler Toolchain
+
+Externamente el "compiler toolchain" en su mayoría no ha cambiado comparado con Go 1.5.
+
+Internamente, el cambio más significativo es que el "parser" es ahora "hand-written" en vez de ser generado por yacc.
+
+El nuevo SSA compilador esta programado para ser lanzado para la arquitectura amd64 en Go 1.7.
+
+* Cambios al -X flag
+
+En Go 1.5 el linker al -X flag cambió.
+
+En Go 1.4 y versiones anteriores, tomaba dos argumentos como:
+
+    -X importpath.name value
+
+En Go 1.5 se agregó una sintáxis alternativa usando un solo argumento de tipo nombre=valor:
+
+    -X importpath.name=value
+
+En Go 1.5 la sintaxis anterior era aún aceptada, luego de imprimir mensajes de advertencia sobre la nueva sintaxis. Go 1.6 continua aceptando la antigua sintáxis e imprime advertencias. Go 1.7 eliminará el soporte para la antigua sintaxis.
+
+* "maps panic" si no se usan adecuadamente
+
+El "runtime" agregó una ligera, "best-effort" detección concurrente de uso incorrecto de "maps".
+
+Si el "runtime" detecta esta condición, imprime el diagnóstico y detiene el programa.
+
+    fatal error: concurrent map writes
+
+    goroutine 2726 [running]:
+    runtime.throw(0x192d630, 0x15)
+        /usr/lib/go/src/runtime/panic.go:530 +0x90 fp=0xc8202eb838 sp=0xc8202eb820
+
+La mejor forma de avariguar más es ejecutar el programa usando el "race detector".
+
+* "map panic" ejemplo
+
+.play go1.6/map.go /START OMIT/,/END OMIT/
+
+* Mensajes de "Panic" son cortos por defecto
+
+Para "panics" que detienen el programa, el "runtime" ahora por defecto imprime _solo_el_stack_del_goroutine_en_ejecución_, no todas las goroutines existentes.
+
+Usualmente solo la actual goroutine es reelevante al "panic", entonces omitir los otros significa reducir irelevante emisión de mensajes.
+
+Para ver los "stacks" de todos las goroutines, agregar la variable de entorno `GOTRACEBACK=0` o invocar a `debug.SetTraceback` antes del "crash", y re-ejecutar el programa.
+
+    env GOTRACEBACK=0 ./crashy
+
+Más información:
+
+- [[http://dave.cheney.net/2015/11/29/a-whirlwind-tour-of-gos-runtime-environment-variables#GOTRACEBACK][A whirlwind tour of Go’s runtime environment variables]]
+
+* ejemplo de un corto mensaje de "panic"
+
+.play go1.6/crashy.go /START OMIT/,/END OMIT/
+
+* Windows timer resolution
+
+En Windows, los programas en Go 1.5 y versiones anteriores forzaban el "Windows timer resolution" global a 1ms en el "startup" invocando a `timeBeginPeriod(1)`.
+
+Esto no es conveniente para las baterias de los usuarios de Windows.
+
+Go 1.6 no necesita más esto para tener un buen rendimiento del "scheduler", ay cambiar el "timer resolution" global causaba problemas en algunos sistemas, entonces la invocación a `timeBeginPeriod` se eliminó.
+
+* Soporte Vendor
+
+Go 1.5 incluyó soporte experimental para "vendoring", se habilita usando la variable de entorno `GO15VENDOREXPERIMENT` a 1.
+
+Go 1.6 mantiene el soporte para "vendoring", pero no es considerado más como experimental, y esta habilitado por defecto.
+
+Puede ser deshabilitado explicitamente usando la variable de entorno GO15VENDOREXPERIMENT a 0. Go 1.7 eliminará el soporte para esta variable de entorno.
+
+El problema más usual que ocurre cuando se habilita el "vendoring" por defecto, ocurre en programas que contienen directorios que tienen de nombre "vendor" y no son compatibles semanticamente con el "vendoring" oficial. En este caso la forma más simple de arreglar esto es cambiar de nombre al directorio y actualizar los "paths" de importación.
+
+
+* Cómo funciona?
+
+        /home/user/gocode/
+            src/
+                server-one/
+                    main.go            (import "github.com/gorilla/mux")
+                server-two/
+                    main.go            (import "github.com/gorilla/mux")
+                    vendor/
+                        github.com/
+                            gorilla/
+                                mux/
+                                    ...
+
+`server-one` usa el paquete `mux` de `$GOPATH/src/github.com/gorilla/mux`.
+
+`server-two` usa el paquete `mux` de `vendor`.
+
+* Vendored code matches ./...
+
+Si normalmente haces:
+
+   % cd $GOPATH/github.com/you/repo
+   % go test ./...
+
+Tener en cuenta que los paquetes "vendored", como:
+
+   $GOPATH/github.com/you/repo/vendor/github.com/them/repo
+
+Coincidirá con el glob operador `...` de la herramienta "go tool", y probablemente cause que el test falle.
+
+La solución es filtrar los paquetes "vendored" por nombre
+
+   go test $(go list ./... | grep -v /vendor/)
+
+Más información:
+
+- [[https://github.com/golang/go/issues/11659#issuecomment-171678025][Issue 11659]]
+
+* LLVM memory sanitizer, -msan
+
+El compilador, linker, y go command tienen un nuevo flag `-msan`, análogo to `-race` y habilita interoperación con el Clang MemorySanitizer.
+
+Esta interoperación es útil principalmente para tester un programa que contiene código C o C++ sospechoso.
+
+    go build -msan $YOURCOMMAND
+
+Esto debería probablemente ser considerado _experimental_ y solo ser habilitado en linux/amd64.
+
+* Rendimiento
+
+En promedio el programa en Go 1 benchmark suite funciona más rápido por algunas unidades de porcentaje más en Go 1.6 y que Go 1.5.
+
+La pausa del "garbage collector" es aún menor que en Go 1.5, aunque el efecto es probable que sea notado solo en programas usando grandes cantidades de memoria.
+
+Hay significantes optimizaciones que traen 10% de mejoras en implementaciones de: compress/bzip2, compress/gzip, crypto/aes, crypto/elliptic, crypto/ecdsa, y paquetes similares.
+
+* Sorting
+
+En el paquete "sort", la implementación de `Sort` fue re-escrito para hacer 10% menos invocaciones a los métodos de las interfaces `Less` y `Swap`.
+
+El nuevo algoritmo escoge diferente ordenamiento que antes para valores que comparan igualdad (esos pares en los cuales `Less(i,`j)` y `Less(j,`i)` es falso).
+
+La definición de `Sort` no garantiza el final del ordernamiento de _valores_iguales_, el nuevo compartamiento tal vez rompa programas que esperan un order específico.
+
+Esos programas deberán refinar la implementación de Less para reportar el ordern deseado o cambiar a `sort.Stable`, donde se preserva la implementación pasada.
+
+* sort.Sort ejemplo
+
+.play go1.6/sort.go /START OMIT/,/END OMIT/
+
+_Cambiar_sort.Sort_a_sort.Stable_y_observar_los_efectos_
+
+* Excluir los espacios en blanco con text/template
+
+Ahora es posible hacer `trim` a los espacios en acciones de "template", lo cual hace las definiciones de template más legible.
+
+Un signo menos en el inicio de cada acción dice hacer `trim` a los espacios antes de cada acción, y un signo al final de la acción dice: `trim` los espacios después de cada acción.
+
+.play go1.6/template.go
+
+* Go vet command
+
+El comando go vet ahora diagnostica funciones y métodos que son pasados como argumentos a Printf, como cuando se pasa f en vez de f() era lo que se pretendía.
+
+.code go1.6/vet.go
+
+    % go tool vet -all go1.6/vet.go
+    go1.6/vet.go:6: arg r.UserAgent in printf call is a function value, not a function call
+
+* Gccgo
+
+Las fechas de lanzamiento para el GCC y el proyecto Go no coinciden.
+
+GCC 5 contiene la versión Go 1.4 de gccgo.
+
+El siguiente lanzamiento, GCC 6, tendrá la versión Go 1.5 de gccgo.
+
+Debido al lanzamiento programado, es muy probable que Go 1.6 no estará en el lanzamiento de GCC hasta GCC 7.
+
+* Cambios secundarios en la biblioteca estándar
+
+Al igual como los cambios principales mencionados antes, la biblioteca estándar recibe muchas correciones de bugs y también mejoras secundarias.
+
+Esta sección destaca algunos de esos cambios.
+
+Mas información:
+
+- [[https://tip.golang.org/doc/go1.6#minor_library_changes][Go 1.6 notas del lanzamiento]]
+
+* archive/tar
+
+Joe Tsai ha puesto mucho esfuerzo en el paquete archive/tar, corrigiendo muchos bugs y raros casos borders del formato de archivo.
+
+Un visible cambio es que el método Read del tipo Reader ahora presenta el contenido de tipos formatos especiales como vacío, retornando io.EOF inmediatamente.
+
+* bufio
+
+En el paquete bufio, el tipo Scanner ahora tiene un método Buffer, para especificar un buffer inicial y tamaño máximo de buffer para ser usado durante el scanning.
+
+Esto hace posible, cuando se necesita, escanear tokens más grandes que MaxScanTokenSize.
+
+También para el Scanner, el paquete ahora define el error ErrFinalToken, para usar por funciones split para cancelar el procesamiento o retornar un final token vacío.
+
+* bufio (ejemplo)
+.code go1.6/scan.go /START OMIT/,/END OMIT/
+
+* net/* changes
+
+El paquete net/http tiene varias incorporaciones secundarias además del soporte para HTTP/2 ya conversado antes.
+
+- El FileServer ahora ordena los directorios generados por nombre del file.
+- El Cliente ahora permite que el código del usuario pueda configurar: Expect: 100-continue header (ver Transport.ExpectContinueTimeout).
+- Ahora existe 4 nuevos códigos de errores del RFC 6585: StatusPreconditionRequired (428), StatusTooManyRequests (429), StatusRequestHeaderFieldsTooLarge (431), y StatusNetworkAuthenticationRequired (511).
+- La implementación y documentación de CloseNotifier cambió sustancialmente. La interface Hijacker ahora funciona correctamente en conexiones que previamente fueron usados con CloseNotifier. La documentación ahora describe cuando CloseNotifier se espera que funcione.
+
+* net/* changes (cont.)
+- ResponseRecorder del paquete net/http/httptest, ahora inicializa un Content-Type header por defecto usando el mismo algoritmo de content-sniffing como en http.Server.
+- Parse del paquete net/url ahora es más estricto y compatible con la especificación con respecto a parsear host names. Por ejemplo, espacios en los nombres de host no son aceptados.
+- Ahora net/url.Error implementa net.Error.
+
+* GODEBUG=netdns
+
+El paquete `net` implementa dos DNS "resolvers"
+
+- "resolver" basado en cgo el cual usa la plataforma del dns "resolver"
+- el denominado "pure Go" DNS "resolver"
+
+El antiguo es el que va por defecto cuando no se realiza "cross compiling", el último es habilitado exclusivamente cuando se hace "cross compiling".
+
+Para "builds" nativos, se puede usar la configuración
+
+    export GODEBUG=netdns=go    # force pure Go resolver
+    export GODEBUG=netdns=cgo   # force cgo resolver
+
+Mas información:
+
+- [[https://golang.org/pkg/net/#hdr-Name_Resolution][Sección: Name resolution]] de la documentación del paquete `net`.
+
+* os
+
+Las funciones: IsExist, IsNotExist, and IsPermission del paquete os, ahora retornan el correcto resultado cuando se indaga por SyscallError.
+
+En sistemas Unix, cuando una escritura a os.Stdout o os.Stderr (precisamente, en un archivo abierto usando os.File) falla debido "broken pipe" error, el programa lanzará un signal SIGPIPE. Por defecto esto causará que el cierre del programa; esto puede ser cambiado invocando la función Notify del paquete os/signal por syscall.SIGPIPE. Una escritura a un "broken pipe" en un "file descriptor" otro 1 o 2, simplemente retornará syscall.EPIPE (posiblemente "wrapped" os.PathError y/o os.SyscallError) al "caller".
+
+The old behavior of raising an uncatchable SIGPIPE signal after 10 consecutive writes to a broken pipe no longer occurs.
+
+* regexp
+
+En el paquete regexp, el tipo Regexp siempre ha sido seguro para uso por goroutines concurrentes.
+
+Algunos servidores de alta-concurrencia usan las mismas Regexp de muchas goroutines, los cuales notaron reducción de rendimiento debido a la contención de un mutex protegiendo un cache usado durante busquedas de regexp.
+
+Para ayudar a esos servidores, Regexp ahora tiene un método Copy, el cual hace que la copia de un Regexp que comparte la mayoría de su estructura con la original, tenga su propio espacio de cache.
+
+    re1 := regexp.MustCompile(`^(?P<root>github\.com/([A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+))(/[A-Za-z0-9_.\-]+)*$`)
+    re2 := re1.Copy()
+
+Copy tiene adicional espacio "overhead", entonces Copy debería solo ser usado cuando contención ha sido observado.
+
+* time
+
+La función Parse del paquete time siempre ha rechazado cualquier día del mes mayor a 31, tal como: January 32.
+
+En Go 1.6, Parse ahora también rechaza February 29 en años bisiestos así como también: February 30, February 31, April 31, June 31, September 31, and November 31.
+
+.play go1.6/parse.go
