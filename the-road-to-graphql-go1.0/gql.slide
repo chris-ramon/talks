@@ -156,7 +156,7 @@ Chris Ramón
 : So since some weeks ago we reactivated the develpment towards the 1.0 version of the lib
 
 * graphql-go — Schema
-.code app/main.go /START1/,/STOP1/
+: .code app/main.go /START1/,/STOP1/
 : Now let's explore how we can use the lib in order to create interactions between server and clients.
 : GraphQL servers exposes their capabilities to clients, through the schemas.
 : Meaning schemas are were we define, how clients can interact with servers, via queries or mutations. 
@@ -171,8 +171,8 @@ Chris Ramón
 
 
 * graphql-go — Query
-.code app/queries/queries.go /START1/,/STOP1/
-.code app/models/models.go /START1/,/STOP1/
+: .code app/queries/queries.go /START1/,/STOP1/
+: .code app/models/models.go /START1/,/STOP1/
 : Now let's explore how we define the CurrentUser field.
 : First we define the type of this field, in this case is a graphql object.
 : So for this user type, we can define other sub-fields, in this case
@@ -185,7 +185,7 @@ Chris Ramón
 : value, if is the case. 
 
 * graphql-go — Query
-.play app/client/queries.go /START1/,/STOP1/
+: .play app/client/queries.go /START1/,/STOP1/
 : Now let's send a query string to the schema we previously saw.
 : Here we define a query string asking for the current user type
 : and requesting only two fields the id and the firstname. 
@@ -197,7 +197,7 @@ Chris Ramón
 
 
 * graphql-go — Mutation
-.code app/mutations/mutations.go /START1/,/STOP1/
+: .code app/mutations/mutations.go /START1/,/STOP1/
 : Now let's explore how we define the create contact mutation field.
 : First we define what is the type of this field, in this case is a new graphql object 
 : Then we define which arguments this mutation can receive, we use it to receive
@@ -212,10 +212,10 @@ Chris Ramón
 : so clients can now what went wrong.
 
 * graphql-go — Mutation
-.code app/models/models.go /START2/,/STOP2/
+: .code app/models/models.go /START2/,/STOP2/
 
 * graphql-go — Mutation
-.play app/client/mutations.go /START1/,/STOP1/
+: .play app/client/mutations.go /START1/,/STOP1/
 : Now let's try to send a mutation query string to our contacts schema defined before.
 : First we define the mutation query string, in this case we
 : want to execute the createContact mutation and we provide the arguments firstname and email
